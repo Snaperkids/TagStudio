@@ -83,6 +83,7 @@ from src.qt.modals.file_extension import FileExtensionModal
 from src.qt.modals.fix_dupes import FixDupeFilesModal
 from src.qt.modals.fix_unlinked import FixUnlinkedEntriesModal
 from src.qt.modals.folders_to_tags import FoldersToTagsModal
+from src.qt.modals.import_XMP_tags import ImportXMPModal
 from src.qt.modals.tag_database import TagDatabasePanel
 from src.qt.resource_manager import ResourceManager
 from src.qt.widgets.item_thumb import BadgeType, ItemThumb
@@ -407,6 +408,14 @@ class QtDriver(QObject):
             )
         )
         macros_menu.addAction(self.autofill_action)
+
+        def import_xmp_modal():
+            if not hasattr(self, "import_xmp_modal"):
+                self.import_xmp_modal = ImportXMPModal(self.lib, self)
+            self.import_xmp_modal.show()
+
+        import_xmp_action = QAction("XMP to Tags", menu_bar)
+        macros_menu.addAction(import_xmp_action)
 
         show_libs_list_action = QAction("Show Recent Libraries", menu_bar)
         show_libs_list_action.setCheckable(True)
