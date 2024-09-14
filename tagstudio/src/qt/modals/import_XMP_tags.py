@@ -3,6 +3,7 @@
 # Created for TagStudio: https://github.com/CyanVoxel/TagStudio
 
 
+import io
 import math
 import typing
 from dataclasses import dataclass, field
@@ -31,26 +32,39 @@ if typing.TYPE_CHECKING:
 
 logger = structlog.get_logger(__name__)
 
-
+def get_embedded_xmp_data(entry_file_stream: io.TextIOWrapper):
+    return None
 
 def import_xmp(library: Library):
     logger.info("Beginning Import XMP")
 
     for entry in library.get_entries():
-        # Finding XMP File
-        xmp_file_name = pathlib.Path(entry.path.stem + entry.path.suffix)
-        existence = xmp_file_name.is_file()
-        logger.info(xmp_file_name)
-        xmp_file_stream = xmp_file_name
-
-        # if not xmp_file.exist():
-        #     logger.debug("Checking for Embedded XMP")
         
+        # Finding XMP File and Getting File Stream for Readin
+        xmp_file_path = library.library_dir / pathlib.Path(entry.path.stem + ".xmp")
+        xmp_file_stream = None
+
+        if not xmp_file_path.is_file():
+            logger.debug("Checking for Embedded XMP")
+            #TODO: Implement Embedded XMP Reading
+            entry_path = library.library_dir / entry.path
+            with open(entry_path) as entry_data_stream:
+                xmp_file_stream = get_embedded_xmp_data(entry_data_stream)
+        else:
+            xmp_file_stream = open(xmp_file_path)
+        
+        if xmp_file_stream is None:
+            logger.info("No XMP Data for: " + str(entry.path))
+            continue
+
         logger.debug("Parse XMP Data to Tags")
+        xmp_file_stream.read()
         logger.debug("Adding XMP Tags")
         
         # if tag and not entry.has_tag(tag):
         #     library.add_field_tag(entry, tag, _FieldID.TAGS.name, create_field=True)
+
+        xmp_file_stream.close()
 
     logger.info("Done")
 
@@ -66,7 +80,7 @@ class XMPToTagsModal(QWidget):
 
         self.setWindowTitle("Import XMP")
         self.setWindowModality(Qt.WindowModality.ApplicationModal)
-        self.setMinimumSize(640, 640)
+        self.setMinimumSize(640, 320)
         self.root_layout = QVBoxLayout(self)
         self.root_layout.setContentsMargins(6, 6, 6, 6)
 
@@ -82,7 +96,7 @@ class XMPToTagsModal(QWidget):
         self.desc_widget.setWordWrap(True)
         self.desc_widget.setText(
             """This tool is intended to import XMP tags from embedded metadata and .xmp sidecar files.
-            This tool is incomplete and still needs a preview created for it as the primary QoL"""
+                This tool is incomplete and still needs a preview created for it as the primary QoL"""
         )
 
         #TODO: Add Preview for XMP Import
