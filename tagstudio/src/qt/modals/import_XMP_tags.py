@@ -8,6 +8,8 @@ import typing
 from dataclasses import dataclass, field
 
 import structlog
+import os
+import pathlib
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QFrame,
@@ -35,9 +37,11 @@ def import_xmp(library: Library):
     logger.info("Beginning Import XMP")
 
     for entry in library.get_entries():
-        logger.debug("Finding XMP File")
-        
-        # xmp_file = get_xmp_file(entry.path)
+        # Finding XMP File
+        xmp_file_name = pathlib.Path(entry.path.stem + entry.path.suffix)
+        existence = xmp_file_name.is_file()
+        logger.info(xmp_file_name)
+        xmp_file_stream = xmp_file_name
 
         # if not xmp_file.exist():
         #     logger.debug("Checking for Embedded XMP")
