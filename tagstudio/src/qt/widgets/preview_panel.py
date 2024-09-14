@@ -43,7 +43,6 @@ from src.core.library.alchemy.library import Library
 from src.qt.helpers.file_opener import FileOpenerHelper, FileOpenerLabel, open_file
 from src.qt.helpers.qbutton_wrapper import QPushButtonWrapper
 from src.qt.modals.add_field import AddFieldModal
-from src.qt.modals.import_xmp_tags import ImportXMPModal
 from src.qt.widgets.fields import FieldContainer
 from src.qt.widgets.panel import PanelModal
 from src.qt.widgets.tag_box import TagBoxWidget
@@ -239,18 +238,6 @@ class PreviewPanel(QWidget):
         self.update_image_size(
             (self.image_container.size().width(), self.image_container.size().height())
         )
-
-        self.import_xmp_tags_container = QWidget()
-        self.import_xmp_tags_layout = QVBoxLayout(self.import_xmp_tags_container)
-        self.import_xmp_tags_layout.setContentsMargins(0, 12, 0, 0)
-
-        self.import_xmp_button = QPushButtonWrapper()
-        self.import_xmp_button.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.import_xmp_button.setMinimumSize(96, 28)
-        self.import_xmp_button.setMaximumSize(96, 28)
-        self.import_xmp_button.setText("Add Field")
-        self.import_xmp_tags_layout.addWidget(self.import_xmp_button)
-        self.import_xmp_modal = ImportXMPModal(self.lib, self.driver)
 
         root_layout = QHBoxLayout(self)
         root_layout.setContentsMargins(0, 0, 0, 0)
