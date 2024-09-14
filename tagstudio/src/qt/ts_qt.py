@@ -90,6 +90,7 @@ from src.qt.widgets.panel import PanelModal
 from src.qt.widgets.preview_panel import PreviewPanel
 from src.qt.widgets.progress import ProgressWidget
 from src.qt.widgets.thumb_renderer import ThumbRenderer
+from src.qt.modals.import_xmp_tags import XMPToTagsModal
 
 # SIGQUIT is not defined on Windows
 if sys.platform == "win32":
@@ -429,6 +430,15 @@ class QtDriver(QObject):
         folders_to_tags_action = QAction("Folders to Tags", menu_bar)
         folders_to_tags_action.triggered.connect(create_folders_tags_modal)
         macros_menu.addAction(folders_to_tags_action)
+
+        def create_xmp_tags_modal():
+            if not hasattr(self, "folders_modal"):
+                self.xmp_modal = XMPToTagsModal(self.lib, self)
+            self.xmp_modal.show()
+
+        xmp_to_tags_action = QAction("Import XMP Tags", menu_bar)
+        xmp_to_tags_action.triggered.connect(create_xmp_tags_modal)
+        macros_menu.addAction(xmp_to_tags_action)
 
         # Help Menu ==========================================================
         self.repo_action = QAction("Visit GitHub Repository", menu_bar)
