@@ -3,8 +3,10 @@
 # Created for TagStudio: https://github.com/CyanVoxel/TagStudio
 
 
+import binascii
 import io
 import math
+from struct import unpack
 import typing
 from dataclasses import dataclass, field
 
@@ -32,8 +34,40 @@ if typing.TYPE_CHECKING:
 
 logger = structlog.get_logger(__name__)
 
-def get_embedded_xmp_data(entry_file_stream: io.TextIOWrapper):
-    return None
+jpeg_segment_markers = {
+    0xFFD8: "SOI",
+    0xFFC0: "SOF0",
+    0xFFC2: "SOF2",
+    0xFFC4: "DHT",
+    0xFFDB: "DQT",
+    0xFFDD: "DRI",
+    0xFFDA: "SOS",
+    0xFFFE: "COM",
+    0xFFD9: "EOI"
+}
+
+def decode_jpeg(file_data: bytes):
+    
+    while True:
+        marker, = unpack(">H", file_data[0:2])
+        if marker == 0xFFD8:
+            logger.info("SOI : " + str(2))
+            file_data = file_data[2:]
+        else:
+            segment_length, = unpack(">H", file_data[2:4])
+            logger.info(str(marker) + " : " + str(segment_length))
+            file_data = file_data[2 + segment_length:]
+        if len(file_data) == 0:
+            break
+
+# RETURNS: Input Stream Positioned at the Beginning of the XMP Data
+def get_embedded_xmp_data(entry_file_stream: io.BufferedReader, suffix: str):
+    
+    file_data = entry_file_stream.read()
+
+    if suffix == ".jpg":
+        return io.BytesIO(decode_jpeg(file_data))
+
 
 def import_xmp(library: Library):
     logger.info("Beginning Import XMP")
@@ -48,8 +82,8 @@ def import_xmp(library: Library):
             logger.debug("Checking for Embedded XMP")
             #TODO: Implement Embedded XMP Reading
             entry_path = library.library_dir / entry.path
-            with open(entry_path) as entry_data_stream:
-                xmp_file_stream = get_embedded_xmp_data(entry_data_stream)
+            with open(entry_path, "rb") as entry_data_stream:
+                xmp_file_stream = get_embedded_xmp_data(entry_data_stream, entry.path.suffix)
         else:
             xmp_file_stream = open(xmp_file_path)
         
