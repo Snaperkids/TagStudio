@@ -36,6 +36,8 @@ logger = structlog.get_logger(__name__)
 
 jpeg_segment_markers = {
     0xFFD8: "SOI",
+    0xFFE1: "APP",
+    0xFFE1: "APP1",
     0xFFC0: "SOF0",
     0xFFC2: "SOF2",
     0xFFC4: "DHT",
@@ -69,31 +71,21 @@ def get_embedded_xmp_data(entry_file_stream: io.BufferedReader, suffix: str):
         return io.BytesIO(decode_jpeg(file_data))
 
 
-def import_xmp(library: Library):
-    logger.info("Beginning Import XMP")
+def import_metadata(library: Library):
+    logger.info("Beginning Metadata Import")
 
     for entry in library.get_entries():
         
-        # Finding XMP File and Getting File Stream for Readin
+        # Finding Path to XMP File and Getting File Stream for Readin
         xmp_file_path = library.library_dir / pathlib.Path(entry.path.stem + ".xmp")
         xmp_file_stream = None
 
-        if not xmp_file_path.is_file():
-            logger.debug("Checking for Embedded XMP")
-            #TODO: Implement Embedded XMP Reading
-            entry_path = library.library_dir / entry.path
-            with open(entry_path, "rb") as entry_data_stream:
-                xmp_file_stream = get_embedded_xmp_data(entry_data_stream, entry.path.suffix)
+        if xmp_file_path.exists():
+            import_xmp(xmp_file_path)
         else:
-            xmp_file_stream = open(xmp_file_path)
-        
-        #Safety Check to Make Sure File Stream is Initialized
-        if xmp_file_stream is None:
-            logger.debug("No XMP Data for: " + str(entry.path))
-            continue
+
 
         logger.debug("Parse XMP Data to Tags")
-        xmp_file_stream.read()
         logger.debug("Adding XMP Tags")
         
         # if tag and not entry.has_tag(tag):
@@ -130,8 +122,9 @@ class XMPToTagsModal(QWidget):
         self.desc_widget.setObjectName("descriptionLabel")
         self.desc_widget.setWordWrap(True)
         self.desc_widget.setText(
-            """This tool is intended to import XMP tags from embedded metadata and .xmp sidecar files.
-                This tool is incomplete and still needs a preview created for it as the primary QoL"""
+            """This tool is intended to import tags from embedded metadata and .xmp sidecar files.
+            This tool is incomplete and still needs a preview created for it as the primary QoL.
+            Currently this tool only supports EXIF and XMP metadata from JPEGs"""
         )
 
         #TODO: Add Preview for XMP Import
@@ -148,6 +141,6 @@ class XMPToTagsModal(QWidget):
         self.root_layout.addWidget(self.apply_button, alignment=Qt.AlignmentFlag.AlignCenter)
 
     def on_apply(self, event):
-        import_xmp(self.library)
+        import_file_metadata(self.library)
         self.close()
         self.driver.preview_panel.update_widgets()
